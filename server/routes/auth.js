@@ -1,13 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 
+// In-memory fallback users cache (when MongoDB is offline)
+const memoryUsers = [
+  {
+    _id: '65f1a2b3c4d5e6f7a8b9c0d1',
+    name: 'Student Evaluator',
+    email: 'student@symbiosis.edu',
+    passwordHash: bcrypt.hashSync('password123', 10),
+    role: 'user'
+  }
+];
+
 // Helper to generate JWT token
-const generateToken = (id) => {
+const generateToken = (id, name, email) => {
   return jwt.sign(
-    { id },
+    { id, name, email },
     process.env.JWT_SECRET || 'super_secret_ca3_key_25070521128_symbiosis',
     { expiresIn: '30d' }
   );
@@ -27,35 +40,70 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    const userExists = await User.findOne({ email: email.toLowerCase() });
-    if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists with this email'
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // If MongoDB is connected, use Mongoose
+    if (mongoose.connection.readyState === 1) {
+      const userExists = await User.findOne({ email: normalizedEmail });
+      if (userExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this email'
+        });
+      }
+
+      const user = await User.create({
+        name,
+        email: normalizedEmail,
+        password
+      });
+
+      const token = generateToken(user._id, user.name, user.email);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Account created successfully',
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token
+        }
+      });
+    } else {
+      // In-Memory Fallback
+      const userExists = memoryUsers.find((u) => u.email === normalizedEmail);
+      if (userExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this email'
+        });
+      }
+
+      const newUser = {
+        _id: 'usr_' + Date.now(),
+        name,
+        email: normalizedEmail,
+        passwordHash: await bcrypt.hash(password, 10),
+        role: 'user'
+      };
+      memoryUsers.push(newUser);
+
+      const token = generateToken(newUser._id, newUser.name, newUser.email);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Account created successfully (Memory Mode)',
+        data: {
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          token
+        }
       });
     }
-
-    // Create user
-    const user = await User.create({
-      name,
-      email: email.toLowerCase(),
-      password
-    });
-
-    const token = generateToken(user._id);
-
-    return res.status(201).json({
-      success: true,
-      message: 'Account created successfully',
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token
-      }
-    });
   } catch (error) {
     console.error('Registration error:', error);
     return res.status(500).json({
@@ -79,37 +127,71 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check for user
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
+    const normalizedEmail = email.toLowerCase().trim();
 
-    // Check password match
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    const token = generateToken(user._id);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Logged in successfully',
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token
+    // If MongoDB is connected, use Mongoose
+    if (mongoose.connection.readyState === 1) {
+      const user = await User.findOne({ email: normalizedEmail });
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
       }
-    });
+
+      const isMatch = await user.matchPassword(password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
+
+      const token = generateToken(user._id, user.name, user.email);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Logged in successfully',
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token
+        }
+      });
+    } else {
+      // In-Memory Fallback
+      const user = memoryUsers.find((u) => u.email === normalizedEmail);
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
+
+      const token = generateToken(user._id, user.name, user.email);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Logged in successfully (Memory Mode)',
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token
+        }
+      });
+    }
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({
@@ -120,7 +202,7 @@ router.post('/login', async (req, res) => {
 });
 
 // @route   GET /api/auth/me
-// @desc    Get current logged in user profile
+// @desc    Get current user profile
 // @access  Private
 router.get('/me', protect, async (req, res) => {
   try {
