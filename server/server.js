@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
   res.json({
     status: 'online',
     project: 'Full Stack Web Development CA-03',
-    app: 'CineScope Movie & Series Watchlist Portal',
+    app: 'FinWise Personal Finance & Expense Tracker',
     prn: '25070521128',
     message: 'REST API Server Running',
     endpoints: {
@@ -30,13 +30,13 @@ app.get('/', (req, res) => {
         login: 'POST /api/auth/login',
         profile: 'GET /api/auth/me'
       },
-      movies: {
-        getAll: 'GET /api/movies',
-        getById: 'GET /api/movies/:id',
-        create: 'POST /api/movies',
-        update: 'PUT /api/movies/:id',
-        delete: 'DELETE /api/movies/:id',
-        seed: 'POST /api/movies/seed'
+      transactions: {
+        getAll: 'GET /api/transactions',
+        getById: 'GET /api/transactions/:id',
+        create: 'POST /api/transactions',
+        update: 'PUT /api/transactions/:id',
+        delete: 'DELETE /api/transactions/:id',
+        seed: 'POST /api/transactions/seed'
       }
     }
   });
@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/movies', require('./routes/movies'));
+app.use('/api/transactions', require('./routes/transactions'));
 
 // 404 Handler
 app.use((req, res) => {
@@ -63,7 +63,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`===============================================`);
-  console.log(`🎬 CineScope Backend Server (PRN: 25070521128)`);
+  console.log(`💰 FinWise Backend Server (PRN: 25070521128)`);
   console.log(`📡 Server listening on port ${PORT}`);
   console.log(`🌐 Base URL: http://localhost:${PORT}`);
   console.log(`===============================================`);

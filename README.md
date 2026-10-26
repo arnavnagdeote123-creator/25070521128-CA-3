@@ -1,4 +1,4 @@
-# CineScope - Film & Series Watchlist Management Portal
+# FinWise — Personal Finance & Smart Expense Tracker
 ### Full Stack Web Development (CA-03)
 **PRN:** `25070521128`  
 **Repository Name:** `25070521128-CA-03`
@@ -6,23 +6,23 @@
 ---
 
 ## 📌 Project Overview
-**CineScope** is a modern full-stack web application for film enthusiasts to discover, track, review, and catalog masterpiece cinema and series. Built with the MERN stack (MongoDB, Express, React, Node.js), it includes complete user authentication, streaming service indicators, director technique notes, and full CRUD operations.
+**FinWise** is a full-stack personal finance and expense management platform built using the MERN stack (MongoDB, Express, React, Node.js). It empowers users to monitor cash flow, track daily expenses and income streams, calculate savings rates, and categorize financial records with payment method tags.
 
 ---
 
 ## 📁 Repository Structure
-Conforms strictly to CA-03 specifications:
+Conforms strictly to the CA-03 assignment guidelines:
 ```text
 25070521128/
 ├── client/                     # Frontend React Application (Vite + Tailwind CSS)
 │   ├── src/
-│   │   ├── components/         # Navbar, MovieCard, MovieModal, DeleteModal
+│   │   ├── components/         # Navbar, StatCards, TransactionRow, TransactionModal, DeleteModal
 │   │   ├── context/            # AuthContext (JWT Authentication State)
 │   │   ├── pages/              # AuthPage (Login/Register), DashboardPage
 │   │   ├── services/           # api.js (REST API integration)
 │   │   ├── App.jsx             # Root App with Protected Views
 │   │   ├── main.jsx
-│   │   └── index.css           # Cinematic dark theme styling
+│   │   └── index.css           # Financial dark-theme styling
 │   ├── index.html
 │   ├── package.json
 │   └── vite.config.js
@@ -34,10 +34,10 @@ Conforms strictly to CA-03 specifications:
 │   │   └── auth.js             # JWT Verification Middleware
 │   ├── models/
 │   │   ├── User.js             # User Schema with Bcrypt Password Hashing
-│   │   └── Movie.js            # Movie Schema with Metadata & Director Notes
+│   │   └── Transaction.js      # Financial Ledger Schema (Income / Expense)
 │   ├── routes/
 │   │   ├── auth.js             # Auth Endpoints (Register, Login, Me)
-│   │   └── movies.js           # Full CRUD Endpoints (POST, GET, PUT, DELETE, Seed)
+│   │   └── transactions.js     # Full CRUD Endpoints (POST, GET, PUT, DELETE, Seed)
 │   ├── .env                    # Configured environment variables
 │   ├── .env.example
 │   ├── package.json
@@ -53,18 +53,23 @@ Conforms strictly to CA-03 specifications:
 
 ## 🚀 Key Features
 
-### 1. Dedicated Authentication & Security
+### 1. User Authentication & Security
 * **User Registration & Login**: Credentials stored in MongoDB with salted bcrypt hashing.
 * **JWT Protected Endpoints**: API routes guarded by Bearer tokens.
-* **Separated Authentication View**: Unauthenticated visitors only see the Login / Register screen and are redirected to the movie catalog upon successful login.
-* **Evaluator Demo Button**: 1-click button on login screen to test instantly without manual typing.
+* **Separated Authentication View**: Unauthenticated visitors only see the Login / Register screen and are redirected to the dashboard upon successful login.
+* **Evaluator Demo Button**: 1-click button on login screen to test immediately without typing credentials.
 
-### 2. Film & Series Watchlist (Full CRUD)
-* **Create (`POST /api/movies`)**: Add films with Title, Director, Release Year, Genre, Duration, Poster URL, Streaming Platform, Watch Status, Rating, Personal Review, and Director Notes.
-* **Read (`GET /api/movies`)**: View catalog with live search, Watch Status tabs (*All*, *Watchlist*, *Watched*, *Favorites*), genre chips, platform filters, and multi-mode sorting.
-* **Update (`PUT /api/movies/:id`)**: Edit any film's details or cycle watch status in real-time.
-* **Delete (`DELETE /api/movies/:id`)**: Remove films with confirmation dialog.
-* **Seed Catalog (`POST /api/movies/seed`)**: Navbar button to load default cinematic masterpieces into MongoDB.
+### 2. Financial Ledger & Expense Tracking (Full CRUD)
+* **Real-time Financial Metric Cards**:
+  * **Total Balance**: Real-time net liquidity (Income - Expenses).
+  * **Total Income**: Sum of all earnings (Salary, Freelance, Investments).
+  * **Monthly Expenses**: Sum of all debits (Rent, Groceries, Dining, Utilities).
+  * **Savings Rate (%)**: Dynamic calculation $\frac{\text{Income} - \text{Expenses}}{\text{Income}} \times 100$ with visual progress bar.
+* **Create (`POST /api/transactions`)**: Record income or expense with Title, Amount, Category, Payment Method, Date, and Notes.
+* **Read (`GET /api/transactions`)**: View transactions with live search, transaction type tabs (*All*, *Expenses*, *Income*), category filter chips, payment method filter, and sorting (*Date*, *Amount High-to-Low*, *Amount Low-to-High*).
+* **Update (`PUT /api/transactions/:id`)**: Edit transaction amount, category, or remarks.
+* **Delete (`DELETE /api/transactions/:id`)**: Remove entries with confirmation dialog.
+* **Seed Ledger (`POST /api/transactions/seed`)**: Navbar button to load sample monthly finances into MongoDB.
 
 ---
 
@@ -75,12 +80,12 @@ Conforms strictly to CA-03 specifications:
 | `POST` | `/api/auth/register` | Register a new user | Public |
 | `POST` | `/api/auth/login` | Authenticate user & get JWT token | Public |
 | `GET` | `/api/auth/me` | Fetch currently logged-in user profile | Protected |
-| `GET` | `/api/movies` | Fetch all movies (search, genre, status, platform, sort) | Public |
-| `GET` | `/api/movies/:id` | Fetch single movie details | Public |
-| `POST` | `/api/movies` | Add new film to catalog | Protected |
-| `PUT` | `/api/movies/:id` | Update film details | Protected |
-| `DELETE` | `/api/movies/:id` | Remove film from database | Protected |
-| `POST` | `/api/movies/seed` | Seed default curated movies | Public |
+| `GET` | `/api/transactions` | Fetch all entries with summary statistics | Public |
+| `GET` | `/api/transactions/:id` | Fetch single transaction details | Public |
+| `POST` | `/api/transactions` | Log new transaction | Protected |
+| `PUT` | `/api/transactions/:id` | Update transaction details | Protected |
+| `DELETE` | `/api/transactions/:id` | Remove transaction from ledger | Protected |
+| `POST` | `/api/transactions/seed` | Seed default monthly transactions | Public |
 
 ---
 
@@ -101,7 +106,7 @@ npm run dev
 ```
 *Client runs on:* `http://localhost:3000`
 
-*(Or simply double-click `run-server.bat` and `run-client.bat` on Windows!)*
+*(Or double-click `run-server.bat` and `run-client.bat` on Windows!)*
 
 ---
 
@@ -109,7 +114,7 @@ npm run dev
 ```bash
 git init
 git add .
-git commit -m "feat: complete CineScope movie watchlist portal"
+git commit -m "feat: complete FinWise personal finance and expense tracker"
 git branch -M main
 git remote add origin https://github.com/<YOUR-USERNAME>/25070521128-CA-03.git
 git push -u origin main

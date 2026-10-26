@@ -1,8 +1,14 @@
 import React from 'react';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
 
-export default function DeleteModal({ isOpen, onClose, onConfirm, movie, loading }) {
-  if (!isOpen || !movie) return null;
+export default function DeleteModal({ isOpen, onClose, onConfirm, transaction, loading }) {
+  if (!isOpen || !transaction) return null;
+
+  const formattedAmount = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(transaction.amount);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -20,10 +26,10 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, movie, loading
         </div>
 
         <div className="mt-4">
-          <h3 className="text-base font-bold text-slate-100">Remove Film (DELETE)</h3>
+          <h3 className="text-base font-bold text-slate-100">Delete Entry (DELETE)</h3>
           <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-            Are you sure you want to remove <span className="font-semibold text-slate-200">"{movie.title}"</span> ({movie.year}) directed by{' '}
-            <span className="font-semibold text-slate-200">{movie.director}</span> from your watchlist? This will permanently delete it from MongoDB.
+            Are you sure you want to delete <span className="font-semibold text-slate-200">"{transaction.title}"</span> for{' '}
+            <span className="font-semibold text-slate-200">{formattedAmount}</span> ({transaction.category})? This will permanently remove it from MongoDB and update your account balance.
           </p>
         </div>
 
@@ -38,12 +44,12 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, movie, loading
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(movie._id)}
+            onClick={() => onConfirm(transaction._id)}
             disabled={loading}
             className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
-            <span>{loading ? 'Deleting...' : 'Delete Film'}</span>
+            <span>{loading ? 'Deleting...' : 'Delete Entry'}</span>
           </button>
         </div>
       </div>

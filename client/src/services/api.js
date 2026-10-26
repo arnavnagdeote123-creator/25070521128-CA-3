@@ -1,20 +1,20 @@
 const API_BASE = '/api';
 
-export const getToken = () => localStorage.getItem('cinescope_token');
+export const getToken = () => localStorage.getItem('finwise_token');
 
 export const setAuthData = (token, user) => {
-  localStorage.setItem('cinescope_token', token);
-  localStorage.setItem('cinescope_user', JSON.stringify(user));
+  localStorage.setItem('finwise_token', token);
+  localStorage.setItem('finwise_user', JSON.stringify(user));
 };
 
 export const clearAuthData = () => {
-  localStorage.removeItem('cinescope_token');
-  localStorage.removeItem('cinescope_user');
+  localStorage.removeItem('finwise_token');
+  localStorage.removeItem('finwise_user');
 };
 
 export const getStoredUser = () => {
   try {
-    const user = localStorage.getItem('cinescope_user');
+    const user = localStorage.getItem('finwise_user');
     return user ? JSON.parse(user) : null;
   } catch {
     return null;
@@ -58,35 +58,35 @@ export const authAPI = {
   getProfile: () => request('/auth/me')
 };
 
-// Movies CRUD API Calls
-export const moviesAPI = {
+// Transactions CRUD API Calls
+export const transactionsAPI = {
   getAll: (params = {}) => {
     const query = new URLSearchParams();
+    if (params.type && params.type !== 'All') query.append('type', params.type);
+    if (params.category && params.category !== 'All') query.append('category', params.category);
+    if (params.paymentMethod && params.paymentMethod !== 'All') query.append('paymentMethod', params.paymentMethod);
     if (params.search) query.append('search', params.search);
-    if (params.genre && params.genre !== 'All') query.append('genre', params.genre);
-    if (params.status && params.status !== 'All') query.append('status', params.status);
-    if (params.platform && params.platform !== 'All') query.append('platform', params.platform);
     if (params.sort) query.append('sort', params.sort);
     const qs = query.toString();
-    return request(`/movies${qs ? `?${qs}` : ''}`);
+    return request(`/transactions${qs ? `?${qs}` : ''}`);
   },
-  getById: (id) => request(`/movies/${id}`),
-  create: (movieData) =>
-    request('/movies', {
+  getById: (id) => request(`/transactions/${id}`),
+  create: (txnData) =>
+    request('/transactions', {
       method: 'POST',
-      body: JSON.stringify(movieData)
+      body: JSON.stringify(txnData)
     }),
-  update: (id, movieData) =>
-    request(`/movies/${id}`, {
+  update: (id, txnData) =>
+    request(`/transactions/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(movieData)
+      body: JSON.stringify(txnData)
     }),
   delete: (id) =>
-    request(`/movies/${id}`, {
+    request(`/transactions/${id}`, {
       method: 'DELETE'
     }),
   seed: () =>
-    request('/movies/seed', {
+    request('/transactions/seed', {
       method: 'POST'
     })
 };
