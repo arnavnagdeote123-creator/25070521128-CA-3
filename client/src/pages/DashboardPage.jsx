@@ -1,26 +1,42 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
-import SongCard from '../components/SongCard';
-import SongModal from '../components/SongModal';
+import MovieCard from '../components/MovieCard';
+import MovieModal from '../components/MovieModal';
 import DeleteModal from '../components/DeleteModal';
-import AudioPlayer from '../components/AudioPlayer';
-import { songsAPI } from '../services/api';
-import { Search, SlidersHorizontal, Music, Disc3, Headphones, Star, AlertCircle, RefreshCw } from 'lucide-react';
+import { moviesAPI } from '../services/api';
+import { Search, SlidersHorizontal, Film, Star, CheckCircle, Heart, Bookmark, Sparkles, Tv } from 'lucide-react';
 
-const GENRES = ['All', 'Pop', 'Electronic', 'Lo-Fi', 'Rock', 'Acoustic / Pop', 'Ambient', 'Hip-Hop'];
+const GENRES = [
+  'All',
+  'Sci-Fi',
+  'Psychological Thriller',
+  'Action',
+  'Drama',
+  'Horror',
+  'Animation',
+  'Crime'
+];
+
+const STATUS_TABS = [
+  { id: 'All', label: 'All Films', icon: Film },
+  { id: 'Watchlist', label: 'Watchlist', icon: Bookmark },
+  { id: 'Watched', label: 'Watched', icon: CheckCircle },
+  { id: 'Favorites', label: 'Favorites', icon: Heart }
+];
 
 export default function DashboardPage() {
-  const [songs, setSongs] = useState([]);
+  const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedPlatform, setSelectedPlatform] = useState('All');
   const [sortBy, setSortBy] = useState('newest');
-  const [currentTrack, setCurrentTrack] = useState(null);
 
-  // Modals state
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSong, setEditingSong] = useState(null);
-  const [deletingSong, setDeletingSong] = useState(null);
+  const [editingMovie, setEditingMovie] = useState(null);
+  const [deletingMovie, setDeletingMovie] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [notification, setNotification] = useState(null);
@@ -30,77 +46,81 @@ export default function DashboardPage() {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  const fetchSongs = useCallback(async () => {
+  const fetchMovies = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await songsAPI.getAll({
+      const res = await moviesAPI.getAll({
         search,
         genre: selectedGenre,
+        status: selectedStatus,
+        platform: selectedPlatform,
         sort: sortBy
       });
       if (res.success && res.data) {
-        setSongs(res.data);
-        if (!currentTrack && res.data.length > 0) {
-          setCurrentTrack(res.data[0]);
-        }
+        setMovies(res.data);
       }
     } catch (err) {
-      showNotification(err.message || 'Error fetching tracks', 'error');
+      showNotification(err.message || 'Error fetching movie catalog', 'error');
     } finally {
       setLoading(false);
     }
-  }, [search, selectedGenre, sortBy]);
+  }, [search, selectedGenre, selectedStatus, selectedPlatform, sortBy]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchSongs();
+      fetchMovies();
     }, 250);
     return () => clearTimeout(timer);
-  }, [fetchSongs]);
+  }, [fetchMovies]);
 
   // Handle Save (Create or Update)
-  const handleSaveSong = async (songData, id) => {
+  const handleSaveMovie = async (movieData, id) => {
     if (id) {
       // PUT (Update)
-      const res = await songsAPI.update(id, songData);
-      showNotification('Track successfully updated!');
-      if (currentTrack?._id === id) {
-        setCurrentTrack(res.data);
-      }
+      await moviesAPI.update(id, movieData);
+      showNotification('Film details updated successfully!');
     } else {
       // POST (Create)
-      await songsAPI.create(songData);
-      showNotification('New track added to library!');
+      await moviesAPI.create(movieData);
+      showNotification('New film added to your watchlist!');
     }
-    fetchSongs();
+    fetchMovies();
+  };
+
+  // Quick Status Cycle Handler
+  const handleStatusChange = async (movie, newStatus) => {
+    try {
+      await moviesAPI.update(movie._id, { status: newStatus });
+      showNotification(`Moved "${movie.title}" to ${newStatus}`);
+      fetchMovies();
+    } catch (err) {
+      showNotification(err.message || 'Failed to update status', 'error');
+    }
   };
 
   // Handle Delete (DELETE)
   const handleConfirmDelete = async (id) => {
     try {
       setActionLoading(true);
-      await songsAPI.delete(id);
+      await moviesAPI.delete(id);
       setIsDeleteOpen(false);
-      setDeletingSong(null);
-      showNotification('Track deleted successfully');
-      if (currentTrack?._id === id) {
-        setCurrentTrack(null);
-      }
-      fetchSongs();
+      setDeletingMovie(null);
+      showNotification('Film removed from catalog');
+      fetchMovies();
     } catch (err) {
-      showNotification(err.message || 'Failed to delete track', 'error');
+      showNotification(err.message || 'Failed to delete film', 'error');
     } finally {
       setActionLoading(false);
     }
   };
 
   // Handle Seed
-  const handleSeedTracks = async () => {
+  const handleSeedMovies = async () => {
     try {
       setActionLoading(true);
-      await songsAPI.seed();
-      showNotification('Default music library seeded successfully!');
-      fetchSongs();
+      await moviesAPI.seed();
+      showNotification('Curated movie catalog seeded successfully!');
+      fetchMovies();
     } catch (err) {
       showNotification(err.message || 'Seeding failed', 'error');
     } finally {
@@ -108,37 +128,35 @@ export default function DashboardPage() {
     }
   };
 
-  // Open Edit Modal
-  const openEditModal = (song) => {
-    setEditingSong(song);
+  const openEditModal = (movie) => {
+    setEditingMovie(movie);
     setIsModalOpen(true);
   };
 
-  // Open Add Modal
   const openAddModal = () => {
-    setEditingSong(null);
+    setEditingMovie(null);
     setIsModalOpen(true);
   };
 
-  // Open Delete Modal
-  const openDeleteModal = (song) => {
-    setDeletingSong(song);
+  const openDeleteModal = (movie) => {
+    setDeletingMovie(movie);
     setIsDeleteOpen(true);
   };
 
-  // Calculate stats
-  const totalTracks = songs.length;
-  const uniqueGenres = new Set(songs.map((s) => s.genre)).size;
-  const avgRating = totalTracks
-    ? (songs.reduce((acc, s) => acc + (s.rating || 5), 0) / totalTracks).toFixed(1)
+  // Metrics
+  const totalCount = movies.length;
+  const favoritesCount = movies.filter((m) => m.status === 'Favorites').length;
+  const watchedCount = movies.filter((m) => m.status === 'Watched').length;
+  const avgRating = totalCount
+    ? (movies.reduce((acc, m) => acc + (m.rating || 5), 0) / totalCount).toFixed(1)
     : '5.0';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-28">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-slate-950 text-slate-100 pb-20">
+      {/* Top Navbar */}
       <Navbar
         onOpenAddModal={openAddModal}
-        onSeedTracks={handleSeedTracks}
+        onSeedMovies={handleSeedMovies}
         isSeeding={actionLoading}
       />
 
@@ -156,38 +174,45 @@ export default function DashboardPage() {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        {/* Hero Banner */}
-        <section aria-label="Hero Overview" className="relative rounded-3xl overflow-hidden p-6 sm:p-10 bg-gradient-to-r from-violet-900/40 via-purple-900/30 to-slate-900/60 border border-slate-800 shadow-2xl mb-8">
+        {/* Hero Showcase Banner */}
+        <section aria-label="CineScope Overview" className="relative rounded-3xl overflow-hidden p-6 sm:p-10 bg-gradient-to-r from-rose-950/40 via-orange-950/30 to-slate-900/60 border border-slate-800 shadow-2xl mb-8">
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-violet-500/20 text-violet-300 border border-violet-500/30 mb-3">
-              <Headphones className="w-3.5 h-3.5" /> High-Fidelity Audio Streaming
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 mb-3">
+              <Film className="w-3.5 h-3.5" /> Curate Your Personal Cinema Archive
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-              Curate, Stream & Explore Your Audio Library
+              Track, Review & Rate Masterpiece Cinema
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Complete full-stack CRUD application powered by Node.js, Express, MongoDB, and React with responsive controls and interactive audio preview.
+              Full-stack movie watchlist application powered by Node.js, Express, MongoDB, and React with streaming availability badges, director technique analysis, and full CRUD operations.
             </p>
           </div>
 
-          {/* Key Metrics Chips */}
-          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-800/80 max-w-lg">
+          {/* Metrics Overview */}
+          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800/80 max-w-2xl">
             <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-slate-800">
-              <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
-                <Music className="w-3.5 h-3.5 text-violet-400" /> Total Tracks
+              <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+                <Film className="w-3.5 h-3.5 text-rose-400" /> Total Films
               </div>
-              <span className="text-xl font-bold text-white">{totalTracks}</span>
+              <span className="text-xl font-bold text-white">{totalCount}</span>
             </div>
 
             <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-slate-800">
-              <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
-                <Disc3 className="w-3.5 h-3.5 text-fuchsia-400" /> Active Genres
+              <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Watched
               </div>
-              <span className="text-xl font-bold text-white">{uniqueGenres}</span>
+              <span className="text-xl font-bold text-white">{watchedCount}</span>
             </div>
 
             <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-slate-800">
-              <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
+              <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+                <Heart className="w-3.5 h-3.5 text-rose-500" /> Favorites
+              </div>
+              <span className="text-xl font-bold text-white">{favoritesCount}</span>
+            </div>
+
+            <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-slate-800">
+              <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
                 <Star className="w-3.5 h-3.5 text-amber-400" /> Avg Rating
               </div>
               <span className="text-xl font-bold text-white">{avgRating} ★</span>
@@ -195,34 +220,68 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Search, Filter & Sort Controls */}
-        <section aria-label="Filters and Sorting" className="space-y-4 mb-8">
+        {/* Watch Status Tabs */}
+        <section aria-label="Watch Status Filter" className="flex items-center gap-2 border-b border-slate-800 pb-3 mb-6 overflow-x-auto">
+          {STATUS_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = selectedStatus === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedStatus(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                  isActive
+                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </section>
+
+        {/* Search, Genre & Platform Toolbar */}
+        <section aria-label="Search and Toolbar" className="space-y-4 mb-8">
           <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
             {/* Search Input */}
             <div className="relative w-full sm:w-96">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
-                placeholder="Search tracks by title, artist, album..."
+                placeholder="Search film title, director, review..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-900/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 transition shadow-inner"
+                className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-900/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-500 transition shadow-inner"
               />
             </div>
 
-            {/* Sort Selector */}
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <SlidersHorizontal className="w-4 h-4 text-slate-400" />
+            {/* Platform & Sort Selectors */}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+              <select
+                value={selectedPlatform}
+                onChange={(e) => setSelectedPlatform(e.target.value)}
+                className="px-3 py-2 text-xs sm:text-sm bg-slate-900 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-rose-500 transition cursor-pointer"
+              >
+                <option value="All">All Streaming Platforms</option>
+                <option value="Netflix">Netflix</option>
+                <option value="Prime Video">Prime Video</option>
+                <option value="Disney+">Disney+</option>
+                <option value="Apple TV">Apple TV</option>
+                <option value="Max">Max</option>
+              </select>
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 text-xs sm:text-sm bg-slate-900 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-violet-500 transition cursor-pointer"
+                className="px-3 py-2 text-xs sm:text-sm bg-slate-900 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-rose-500 transition cursor-pointer"
               >
-                <option value="newest">Sort: Newest First</option>
+                <option value="newest">Sort: Recently Added</option>
+                <option value="rating">Sort: Highest Rating</option>
+                <option value="year">Sort: Release Year (Newest)</option>
                 <option value="title">Sort: Title (A-Z)</option>
-                <option value="artist">Sort: Artist (A-Z)</option>
-                <option value="rating">Sort: Highest Rated</option>
-                <option value="plays">Sort: Most Played</option>
+                <option value="director">Sort: Director (A-Z)</option>
               </select>
             </div>
           </div>
@@ -235,7 +294,7 @@ export default function DashboardPage() {
                 onClick={() => setSelectedGenre(genre)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
                   selectedGenre === genre
-                    ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30'
+                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
                     : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800/80 hover:bg-slate-850'
                 }`}
               >
@@ -245,28 +304,27 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Songs Grid */}
+        {/* Movies Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
               <div key={n} className="bg-slate-900/40 rounded-2xl p-4 border border-slate-800 animate-pulse">
-                <div className="aspect-square bg-slate-800/60 rounded-xl mb-3" />
+                <div className="aspect-[16/10] bg-slate-800/60 rounded-xl mb-3" />
                 <div className="h-4 bg-slate-800 rounded w-3/4 mb-2" />
                 <div className="h-3 bg-slate-800/60 rounded w-1/2 mb-3" />
                 <div className="h-6 bg-slate-800/40 rounded-full w-1/3" />
               </div>
             ))}
           </div>
-        ) : songs.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {songs.map((song) => (
-              <SongCard
-                key={song._id}
-                song={song}
-                isPlaying={currentTrack?._id === song._id}
-                onPlay={(s) => setCurrentTrack(s)}
+        ) : movies.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {movies.map((movie) => (
+              <MovieCard
+                key={movie._id}
+                movie={movie}
                 onEdit={openEditModal}
                 onDelete={openDeleteModal}
+                onStatusChange={handleStatusChange}
               />
             ))}
           </div>
@@ -274,53 +332,50 @@ export default function DashboardPage() {
           /* Empty State */
           <div className="text-center py-16 px-4 bg-slate-900/30 rounded-3xl border border-dashed border-slate-800 max-w-lg mx-auto">
             <div className="w-14 h-14 rounded-2xl bg-slate-800/80 flex items-center justify-center mx-auto mb-4 text-slate-400">
-              <Music className="w-7 h-7" />
+              <Film className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-bold text-slate-200">No tracks match your query</h3>
+            <h3 className="text-base font-bold text-slate-200">No movies match your criteria</h3>
             <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-              Try adjusting your search keywords, choose another genre, or add a new track to your collection.
+              Try adjusting your search query, switch the watch status tab, or add a new film to your collection.
             </p>
             <div className="mt-5 flex items-center justify-center gap-3">
               <button
                 onClick={openAddModal}
-                className="px-4 py-2 text-xs font-semibold text-white bg-violet-600 hover:bg-violet-500 rounded-xl transition"
+                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 rounded-xl transition"
               >
-                Add First Song
+                Add First Film
               </button>
               <button
-                onClick={handleSeedTracks}
+                onClick={handleSeedMovies}
                 className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 rounded-xl transition"
               >
-                Seed Sample Tracks
+                Seed Film Catalog
               </button>
             </div>
           </div>
         )}
       </main>
 
-      {/* Persistent Audio Player */}
-      <AudioPlayer currentTrack={currentTrack} />
-
-      {/* Add / Edit Song Modal */}
-      <SongModal
+      {/* Add / Edit Movie Modal */}
+      <MovieModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingSong(null);
+          setEditingMovie(null);
         }}
-        onSave={handleSaveSong}
-        editingSong={editingSong}
+        onSave={handleSaveMovie}
+        editingMovie={editingMovie}
       />
 
-      {/* Delete Song Modal */}
+      {/* Delete Movie Modal */}
       <DeleteModal
         isOpen={isDeleteOpen}
         onClose={() => {
           setIsDeleteOpen(false);
-          setDeletingSong(null);
+          setDeletingMovie(null);
         }}
         onConfirm={handleConfirmDelete}
-        song={deletingSong}
+        movie={deletingMovie}
         loading={actionLoading}
       />
     </div>

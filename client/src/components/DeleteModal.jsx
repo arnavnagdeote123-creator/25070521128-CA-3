@@ -1,11 +1,11 @@
 import React from 'react';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
 
-export default function DeleteModal({ isOpen, onClose, onConfirm, song, loading }) {
-  if (!isOpen || !song) return null;
+export default function DeleteModal({ isOpen, onClose, onConfirm, movie, loading }) {
+  if (!isOpen || !movie) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 overflow-hidden">
         <div className="flex items-start justify-between">
           <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
@@ -20,10 +20,10 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, song, loading 
         </div>
 
         <div className="mt-4">
-          <h3 className="text-base font-bold text-slate-100">Delete Track (DELETE)</h3>
+          <h3 className="text-base font-bold text-slate-100">Remove Film (DELETE)</h3>
           <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-            Are you sure you want to delete <span className="font-semibold text-slate-200">"{song.title}"</span> by{' '}
-            <span className="font-semibold text-slate-200">{song.artist}</span>? This action will permanently remove it from MongoDB.
+            Are you sure you want to remove <span className="font-semibold text-slate-200">"{movie.title}"</span> ({movie.year}) directed by{' '}
+            <span className="font-semibold text-slate-200">{movie.director}</span> from your watchlist? This will permanently delete it from MongoDB.
           </p>
         </div>
 
@@ -38,12 +38,12 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, song, loading 
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(song._id)}
+            onClick={() => onConfirm(movie._id)}
             disabled={loading}
             className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
-            <span>{loading ? 'Deleting...' : 'Delete Track'}</span>
+            <span>{loading ? 'Deleting...' : 'Delete Film'}</span>
           </button>
         </div>
       </div>

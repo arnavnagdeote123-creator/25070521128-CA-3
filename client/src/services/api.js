@@ -1,28 +1,26 @@
 const API_BASE = '/api';
 
-// Helper to get stored auth token
-export const getToken = () => localStorage.getItem('ca03_token');
+export const getToken = () => localStorage.getItem('cinescope_token');
 
 export const setAuthData = (token, user) => {
-  localStorage.setItem('ca03_token', token);
-  localStorage.setItem('ca03_user', JSON.stringify(user));
+  localStorage.setItem('cinescope_token', token);
+  localStorage.setItem('cinescope_user', JSON.stringify(user));
 };
 
 export const clearAuthData = () => {
-  localStorage.removeItem('ca03_token');
-  localStorage.removeItem('ca03_user');
+  localStorage.removeItem('cinescope_token');
+  localStorage.removeItem('cinescope_user');
 };
 
 export const getStoredUser = () => {
   try {
-    const user = localStorage.getItem('ca03_user');
+    const user = localStorage.getItem('cinescope_user');
     return user ? JSON.parse(user) : null;
   } catch {
     return null;
   }
 };
 
-// Generic fetch wrapper with Authorization header
 async function request(endpoint, options = {}) {
   const token = getToken();
   const headers = {
@@ -60,33 +58,35 @@ export const authAPI = {
   getProfile: () => request('/auth/me')
 };
 
-// Songs CRUD API Calls
-export const songsAPI = {
+// Movies CRUD API Calls
+export const moviesAPI = {
   getAll: (params = {}) => {
     const query = new URLSearchParams();
     if (params.search) query.append('search', params.search);
     if (params.genre && params.genre !== 'All') query.append('genre', params.genre);
+    if (params.status && params.status !== 'All') query.append('status', params.status);
+    if (params.platform && params.platform !== 'All') query.append('platform', params.platform);
     if (params.sort) query.append('sort', params.sort);
     const qs = query.toString();
-    return request(`/songs${qs ? `?${qs}` : ''}`);
+    return request(`/movies${qs ? `?${qs}` : ''}`);
   },
-  getById: (id) => request(`/songs/${id}`),
-  create: (songData) =>
-    request('/songs', {
+  getById: (id) => request(`/movies/${id}`),
+  create: (movieData) =>
+    request('/movies', {
       method: 'POST',
-      body: JSON.stringify(songData)
+      body: JSON.stringify(movieData)
     }),
-  update: (id, songData) =>
-    request(`/songs/${id}`, {
+  update: (id, movieData) =>
+    request(`/movies/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(songData)
+      body: JSON.stringify(movieData)
     }),
   delete: (id) =>
-    request(`/songs/${id}`, {
+    request(`/movies/${id}`, {
       method: 'DELETE'
     }),
   seed: () =>
-    request('/songs/seed', {
+    request('/movies/seed', {
       method: 'POST'
     })
 };

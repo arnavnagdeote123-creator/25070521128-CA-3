@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Music, Lock, Mail, User, ArrowRight, Sparkles, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Film, Lock, Mail, User, ArrowRight, Sparkles, AlertCircle, ShieldCheck, Clapperboard } from 'lucide-react';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -40,7 +40,7 @@ export default function AuthPage() {
 
   const handleFillDemo = () => {
     setFormData({
-      name: 'Student Evaluator',
+      name: 'Film Evaluator',
       email: 'student@symbiosis.edu',
       password: 'password123'
     });
@@ -49,20 +49,20 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Ambient Glows */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-fuchsia-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-orange-600/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         {/* Header / Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-fuchsia-600 shadow-xl shadow-violet-500/30 mb-4 ring-1 ring-white/20">
-            <Music className="w-7 h-7 text-white" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-600 via-orange-600 to-amber-500 shadow-xl shadow-rose-500/30 mb-4 ring-1 ring-white/20">
+            <Film className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            BeatFlow Music
+            CineScope
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-mono">
-            Full Stack CA-03 Submission &bull; PRN: <span className="text-violet-400 font-semibold">25070521128</span>
+            Full Stack CA-03 Submission &bull; PRN: <span className="text-rose-400 font-semibold">25070521128</span>
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export default function AuthPage() {
               onClick={() => { setIsLogin(true); setError(''); }}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
                 isLogin
-                  ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -86,7 +86,7 @@ export default function AuthPage() {
               onClick={() => { setIsLogin(false); setError(''); }}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
                 !isLogin
-                  ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -115,7 +115,7 @@ export default function AuthPage() {
                     placeholder="Arnav..."
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-800/90 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 transition"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-800/90 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-500 transition"
                   />
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function AuthPage() {
                   placeholder="student@symbiosis.edu"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-800/90 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 transition"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-800/90 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-500 transition"
                 />
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function AuthPage() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-800/90 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 transition"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-800/90 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-500 transition"
                 />
               </div>
             </div>
@@ -158,19 +158,19 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-2.5 px-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-violet-600/30 transition flex items-center justify-center gap-2 group active:scale-[0.99]"
+              className="w-full mt-2 py-2.5 px-4 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-2 group active:scale-[0.99]"
             >
-              <span>{loading ? 'Authenticating...' : isLogin ? 'Sign In to Dashboard' : 'Complete Registration'}</span>
+              <span>{loading ? 'Authenticating...' : isLogin ? 'Sign In to Watchlist' : 'Complete Registration'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
             </button>
           </form>
 
-          {/* Quick Demo Credentials for Evaluation */}
+          {/* Quick Demo Credentials */}
           <div className="mt-6 pt-5 border-t border-slate-800 flex items-center justify-between">
             <button
               type="button"
               onClick={handleFillDemo}
-              className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 font-medium transition"
+              className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 font-medium transition"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Autofill Sample Account</span>
